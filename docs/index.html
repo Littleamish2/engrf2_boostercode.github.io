@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket Booster Model</title>
+    <style>
+        body {
+            background-color: #333;
+            color: orange;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            justify-content: center;
+        }
+        .container {
+            display: flex;
+            gap: 50px;
+            align-items: center;
+        }
+        .booster {
+            border: 2px solid orange;
+            padding: 20px;
+        }
+        .comparison {
+            border: 2px solid white;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .rocket {
+            width: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px solid orange;
+        }
+        .section {
+            width: 50px;
+            background-color: orange;
+            border-bottom: 2px solid black;
+        }
+        input[type='range'] {
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="comparison">
+        <p id="comparisonText">ΔV₃ = ΔVₚ</p>
+    </div>
+    
+    <div class="container">
+        <!--
+        <div class="booster">
+            <h2>Three Stage Booster</h2>
+            <label>Mass (kg)</label>
+            <input type="range" min="0" max="100" id="mass1" oninput="updateInput('mass1_val', this.value)">
+            <input type="number" id="mass1_val" value="50" oninput="updateSlider('mass1', this.value)">
+            <br>
+            <label>Length (cm)</label>
+            <input type="range" min="0" max="100" id="length1" oninput="updateRocket('rocket1_section1', this.value)">
+            <input type="number" id="length1_val" value="50" oninput="updateRocket('rocket1_section1', this.value)">
+        </div> !-->
+
+        <div class="booster">
+            <h2>Three Stage Booster</h2>
+            <label>Mass (kg)</label>
+            <input type="range" min="0" max="100" id="mass1" oninput="updateInput('mass1_val', this.value)">
+            <input type="number" id="mass1_val" value="50" oninput="updateSlider('mass1', this.value)">
+            <input type="range" min="0" max="100" id="mass2" oninput="updateInput('mass2_val', this.value)">
+            <input type="number" id="mass2_val" value="50" oninput="updateSlider('mass2', this.value)">
+            <input type="range" min="0" max="100" id="mass3" oninput="updateInput('mass3_val', this.value)">
+            <input type="number" id="mass3_val" value="50" oninput="updateSlider('mass3', this.value)">
+            <br>
+            <label>Length (cm)</label>
+            <input type="range" min="0" max="100" id="length1" oninput="updateInput('length1_val', this.value)">
+            <input type="number" id="length1_val" value="50" oninput="updateSlider('length1', this.value)">
+            <input type="range" min="0" max="100" id="length2" oninput="updateInput('length2_val', this.value)">
+            <input type="number" id="length2_val" value="50" oninput="updateSlider('length2', this.value)">
+            <input type="range" min="0" max="100" id="length3" oninput="updateInput('length3_val', this.value)">
+            <input type="number" id="length3_val" value="50" oninput="updateSlider('length3', this.value)">
+        </div>
+        
+        <div class="rocket">
+            <div class="section" id="rocket1_section1" style="height:50px;"></div>
+            <div class="section" id="rocket1_section2" style="height:50px;"></div>
+            <div class="section" id="rocket1_section3" style="height:50px;"></div>
+        </div>
+        
+        <div class="rocket">
+            <div class="section" id="rocket2_section1" style="height:50px;"></div>
+            <div class="section" id="rocket2_section2" style="height:50px;"></div>
+            <div class="section" id="rocket2_section3" style="height:50px;"></div>
+        </div>
+        
+        <div class="booster">
+            <h2>Pop Out Booster</h2>
+            <label>Mass (kg)</label>
+            <input type="range" min="0" max="100" id="mass4" oninput="updateInput('mass4_val', this.value)">
+            <input type="number" id="mass4_val" value="50" oninput="updateSlider('mass4', this.value)">
+            <input type="range" min="0" max="100" id="mass5" oninput="updateInput('mass5_val', this.value)">
+            <input type="number" id="mass5_val" value="50" oninput="updateSlider('mass5', this.value)">
+            <input type="range" min="0" max="100" id="mass6" oninput="updateInput('mass6_val', this.value)">
+            <input type="number" id="mass6_val" value="50" oninput="updateSlider('mass6', this.value)">
+            <br>
+            <label>Length (cm)</label>
+            <input type="range" min="0" max="100" id="length4" oninput="updateInput('length4_val', this.value)">
+            <input type="number" id="length4_val" value="50" oninput="updateSlider('length4', this.value)">
+            <input type="range" min="0" max="100" id="length5" oninput="updateInput('length5_val', this.value)">
+            <input type="number" id="length5_val" value="50" oninput="updateSlider('length5', this.value)">
+            <input type="range" min="0" max="100" id="length6" oninput="updateInput('length6_val', this.value)">
+            <input type="number" id="length6_val" value="50" oninput="updateSlider('length6', this.value)">
+        </div>
+    </div>
+    
+    <script>
+        function updateInput(id, value) {
+            document.getElementById(id).value = value;
+            updateComparison();
+        }
+        function updateSlider(id, value) {
+            document.getElementById(id).value = value;
+            updateComparison();
+        }
+        function updateRocket(id, value) {
+            document.getElementById(id).style.height = value + "px";
+        }
+        function updateComparison() {
+            let deltaV3 = parseFloat(document.getElementById('mass1').value);
+            let deltaVp = parseFloat(document.getElementById('mass2').value);
+            let comparisonText = document.getElementById('comparisonText');
+            
+            if (deltaVp > deltaV3) {
+                comparisonText.textContent = 'ΔV₃ < ΔVₚ';
+            } else if (deltaVp < deltaV3) {
+                comparisonText.textContent = 'ΔV₃ > ΔVₚ';
+            } else {
+                comparisonText.textContent = 'ΔV₃ = ΔVₚ';
+            }
+        }
+    </script>
+</body>
+</html>
+

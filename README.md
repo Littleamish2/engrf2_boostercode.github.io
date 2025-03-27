@@ -1,4 +1,6 @@
-# Engineering Foundations 2: Missile Booster Code
+# Engineering Foundations 2: Missile Booster Code Project
+
+University of Virginia
 
 Team members:
 * Matthew Bach

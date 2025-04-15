@@ -2,8 +2,6 @@
 <html lang="en">
 
 <head>
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rocket Booster Model</title>
@@ -58,44 +56,6 @@
 </head>
 
 <body>
-    <input type="text" id="input_str"/>
-    <input type="number" id="n"/>
-    <button id="submit-button" type="button" py-click="my_function()">OK</button>
-    <div id="test-output"></div>
- 
-    <p>Output:</p>
-    <p id='output'></p>
- 
-    <py-config>
-      packages = ["numpy"]
-    </py-config>
- 
-    <py-script>
-    import numpy as np
-    from pyscript import Element
- 
-    def my_function():
-      input_str = Element('input.str').value
-      n = int(Element('n').value)
-      input_list = input_str.split(",")
-      w = []
-    
-    for num in input_list:
-      w.append(int(num))
-     
-    rows = len(w) // n
-    A = np.zeros((rows, n))
- 
-    for i in range(len(w)):
-      if (w[i] % n == 0):
-        A[w[i]//n - 1, n-1] = int(i+1)
-    else:
-        A[w[i]//n, w[i]%n-1] = int(i+1)
- 
-    result_place = Element('output')
-    result_place.write(str(A))
- 
-    </py-script>
     <div class="comparison">
         <p id="comparisonText">ΔV₃ = ΔVₚ</p>
     </div>

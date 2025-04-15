@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rocket Booster Model</title>
@@ -15,21 +18,25 @@
             height: 100vh;
             justify-content: center;
         }
+
         .container {
             display: flex;
             gap: 50px;
             align-items: center;
         }
+
         .booster {
             border: 2px solid orange;
             padding: 20px;
         }
+
         .comparison {
             border: 2px solid white;
             padding: 10px;
             text-align: center;
             margin-bottom: 20px;
         }
+
         .rocket {
             width: 50px;
             display: flex;
@@ -37,21 +44,62 @@
             align-items: center;
             border: 2px solid orange;
         }
+
         .section {
             width: 50px;
             background-color: orange;
             border-bottom: 2px solid black;
         }
+
         input[type='range'] {
             width: 100px;
         }
     </style>
 </head>
+
 <body>
+    <input type="text" id="input_str"/>
+    <input type="number" id="n"/>
+    <button id="submit-button" type="button" py-click="my_function()">OK</button>
+    <div id="test-output"></div>
+ 
+    <p>Output:</p>
+    <p id='output'></p>
+ 
+    <py-config>
+      packages = ["numpy"]
+    </py-config>
+ 
+    <py-script>
+    import numpy as np
+    from pyscript import Element
+ 
+    def my_function():
+      input_str = Element('input.str').value
+      n = int(Element('n').value)
+      input_list = input_str.split(",")
+      w = []
+    
+    for num in input_list:
+      w.append(int(num))
+     
+    rows = len(w) // n
+    A = np.zeros((rows, n))
+ 
+    for i in range(len(w)):
+      if (w[i] % n == 0):
+        A[w[i]//n - 1, n-1] = int(i+1)
+    else:
+        A[w[i]//n, w[i]%n-1] = int(i+1)
+ 
+    result_place = Element('output')
+    result_place.write(str(A))
+ 
+    </py-script>
     <div class="comparison">
         <p id="comparisonText">ΔV₃ = ΔVₚ</p>
     </div>
-    
+
     <div class="container">
         <!--
         <div class="booster">
@@ -85,19 +133,19 @@
             <input type="range" min="0" max="100" id="length3" oninput="updateInput('length3_val', this.value)">
             <input type="number" id="length3_val" value="50" oninput="updateSlider('length3', this.value)">
         </div>
-        
+
         <div class="rocket">
             <div class="section" id="rocket1_section1" style="height:50px;"></div>
             <div class="section" id="rocket1_section2" style="height:50px;"></div>
             <div class="section" id="rocket1_section3" style="height:50px;"></div>
         </div>
-        
+
         <div class="rocket">
             <div class="section" id="rocket2_section1" style="height:50px;"></div>
             <div class="section" id="rocket2_section2" style="height:50px;"></div>
             <div class="section" id="rocket2_section3" style="height:50px;"></div>
         </div>
-        
+
         <div class="booster">
             <h2>Pop Out Booster</h2>
             <label>Mass (kg)</label>
@@ -119,7 +167,7 @@
             <input type="number" id="length6_val" value="50" oninput="updateSlider('length6', this.value)">
         </div>
     </div>
-    
+
     <script>
         function updateInput(id, value) {
             document.getElementById(id).value = value;
@@ -136,7 +184,7 @@
             let deltaV3 = parseFloat(document.getElementById('mass1').value);
             let deltaVp = parseFloat(document.getElementById('mass2').value);
             let comparisonText = document.getElementById('comparisonText');
-            
+
             if (deltaVp > deltaV3) {
                 comparisonText.textContent = 'ΔV₃ < ΔVₚ';
             } else if (deltaVp < deltaV3) {
@@ -147,5 +195,5 @@
         }
     </script>
 </body>
-</html>
 
+</html>

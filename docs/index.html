@@ -12,23 +12,28 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100vh;
-            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
         }
         .container {
             display: flex;
             gap: 50px;
             align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .booster {
             border: 2px solid orange;
             padding: 20px;
+            min-width: 300px;
         }
         .comparison {
             border: 2px solid white;
             padding: 10px;
             text-align: center;
             margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
         }
         .rocket {
             width: 50px;
@@ -45,45 +50,100 @@
         input[type='range'] {
             width: 100px;
         }
+        .results {
+            margin-top: 20px;
+            padding: 10px;
+            border: 2px solid white;
+            width: 100%;
+            max-width: 800px;
+        }
+        .parameter-group {
+            margin-bottom: 10px;
+        }
+        .parameter-group label {
+            display: inline-block;
+            width: 150px;
+        }
+        .parameter-group input {
+            margin-right: 10px;
+        }
+        .stage-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        .stage-info div {
+            text-align: center;
+            padding: 5px;
+        }
+        .delta-v-comparison {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+        .delta-v-values {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        .delta-v-value {
+            padding: 5px 15px;
+            border: 1px solid orange;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="comparison">
-        <p id="comparisonText">ΔV₃ = ΔVₚ</p>
+        <h2>Rocket Booster Optimization</h2>
+        <div class="delta-v-comparison">
+            <p id="comparisonText">ΔV₃ = ΔVₚ</p>
+            <div class="delta-v-values">
+                <div class="delta-v-value">
+                    <span>ΔV₃: </span>
+                    <span id="deltaV3">0</span> m/s
+                </div>
+                <div class="delta-v-value">
+                    <span>ΔVₚ: </span>
+                    <span id="deltaVp">0</span> m/s
+                </div>
+            </div>
+        </div>
     </div>
     
     <div class="container">
-        <!--
         <div class="booster">
             <h2>Three Stage Booster</h2>
-            <label>Mass (kg)</label>
-            <input type="range" min="0" max="100" id="mass1" oninput="updateInput('mass1_val', this.value)">
-            <input type="number" id="mass1_val" value="50" oninput="updateSlider('mass1', this.value)">
-            <br>
-            <label>Length (cm)</label>
-            <input type="range" min="0" max="100" id="length1" oninput="updateRocket('rocket1_section1', this.value)">
-            <input type="number" id="length1_val" value="50" oninput="updateRocket('rocket1_section1', this.value)">
-        </div> !-->
-
-        <div class="booster">
-            <h2>Three Stage Booster</h2>
-            <label>Mass (kg)</label>
-            <br>
-            <input type="range" min="0" max="100" id="mass1" oninput="updateInput('mass1_val', this.value)">
-            <input type="number" id="mass1_val" value="50" oninput="updateSlider('mass1', this.value)">
-            <input type="range" min="0" max="100" id="mass2" oninput="updateInput('mass2_val', this.value)">
-            <input type="number" id="mass2_val" value="50" oninput="updateSlider('mass2', this.value)">
-            <input type="range" min="0" max="100" id="mass3" oninput="updateInput('mass3_val', this.value)">
-            <input type="number" id="mass3_val" value="50" oninput="updateSlider('mass3', this.value)">
-            <br>
-            <label>Length (cm)</label>
-            <br>
-            <input type="range" min="0" max="100" id="length1" oninput="updateInput('length1_val', this.value)">
-            <input type="number" id="length1_val" value="50" oninput="updateSlider('length1', this.value)">
-            <input type="range" min="0" max="100" id="length2" oninput="updateInput('length2_val', this.value)">
-            <input type="number" id="length2_val" value="50" oninput="updateSlider('length2', this.value)">
-            <input type="range" min="0" max="100" id="length3" oninput="updateInput('length3_val', this.value)">
-            <input type="number" id="length3_val" value="50" oninput="updateSlider('length3', this.value)">
+            <div class="parameter-group">
+                <label>Stage 1 Mass (kg):</label>
+                <input type="range" min="0" max="100" id="mass1" oninput="updateInput('mass1_val', this.value)">
+                <input type="number" id="mass1_val" value="50" oninput="updateSlider('mass1', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Stage 2 Mass (kg):</label>
+                <input type="range" min="0" max="100" id="mass2" oninput="updateInput('mass2_val', this.value)">
+                <input type="number" id="mass2_val" value="50" oninput="updateSlider('mass2', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Stage 3 Mass (kg):</label>
+                <input type="range" min="0" max="100" id="mass3" oninput="updateInput('mass3_val', this.value)">
+                <input type="number" id="mass3_val" value="50" oninput="updateSlider('mass3', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Stage 1 Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length1" oninput="updateInput('length1_val', this.value)">
+                <input type="number" id="length1_val" value="3.33" oninput="updateSlider('length1', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Stage 2 Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length2" oninput="updateInput('length2_val', this.value)">
+                <input type="number" id="length2_val" value="3.33" oninput="updateSlider('length2', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Stage 3 Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length3" oninput="updateInput('length3_val', this.value)">
+                <input type="number" id="length3_val" value="3.33" oninput="updateSlider('length3', this.value)">
+            </div>
+            <button onclick="optimize('threeStage')">Optimize Three Stage</button>
         </div>
         
         <div class="rocket">
@@ -91,51 +151,152 @@
             <div class="section" id="rocket1_section2" style="height:50px;"></div>
             <div class="section" id="rocket1_section3" style="height:50px;"></div>
         </div>
-        
-        <div class="rocket">
-            <div class="section" id="rocket2_section1" style="height:50px;"></div>
-            <div class="section" id="rocket2_section2" style="height:50px;"></div>
-            <div class="section" id="rocket2_section3" style="height:50px;"></div>
-        </div>
-        
+
         <div class="booster">
             <h2>Pop Out Booster</h2>
-            <label>Mass (kg)</label>
-            <br>
-            <input type="range" min="0" max="100" id="mass4" oninput="updateInput('mass4_val', this.value)">
-            <input type="number" id="mass4_val" value="50" oninput="updateSlider('mass4', this.value)">
-            <input type="range" min="0" max="100" id="mass5" oninput="updateInput('mass5_val', this.value)">
-            <input type="number" id="mass5_val" value="50" oninput="updateSlider('mass5', this.value)">
-            <input type="range" min="0" max="100" id="mass6" oninput="updateInput('mass6_val', this.value)">
-            <input type="number" id="mass6_val" value="50" oninput="updateSlider('mass6', this.value)">
-            <br>
-            <label>Length (cm)</label>
-            <br>
-            <input type="range" min="0" max="100" id="length4" oninput="updateInput('length4_val', this.value)">
-            <input type="number" id="length4_val" value="50" oninput="updateSlider('length4', this.value)">
-            <input type="range" min="0" max="100" id="length5" oninput="updateInput('length5_val', this.value)">
-            <input type="number" id="length5_val" value="50" oninput="updateSlider('length5', this.value)">
-            <input type="range" min="0" max="100" id="length6" oninput="updateInput('length6_val', this.value)">
-            <input type="number" id="length6_val" value="50" oninput="updateSlider('length6', this.value)">
+            <div class="parameter-group">
+                <label>Core Mass (kg):</label>
+                <input type="range" min="0" max="100" id="mass4" oninput="updateInput('mass4_val', this.value)">
+                <input type="number" id="mass4_val" value="50" oninput="updateSlider('mass4', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Booster 1 Mass (kg):</label>
+                <input type="range" min="0" max="100" id="mass5" oninput="updateInput('mass5_val', this.value)">
+                <input type="number" id="mass5_val" value="50" oninput="updateSlider('mass5', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Booster 2 Mass (kg):</label>
+                <input type="range" min="0" max="100" id="mass6" oninput="updateInput('mass6_val', this.value)">
+                <input type="number" id="mass6_val" value="50" oninput="updateSlider('mass6', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Core Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length4" oninput="updateInput('length4_val', this.value)">
+                <input type="number" id="length4_val" value="3.33" oninput="updateSlider('length4', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Booster 1 Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length5" oninput="updateInput('length5_val', this.value)">
+                <input type="number" id="length5_val" value="3.33" oninput="updateSlider('length5', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Booster 2 Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length6" oninput="updateInput('length6_val', this.value)">
+                <input type="number" id="length6_val" value="3.33" oninput="updateSlider('length6', this.value)">
+            </div>
+            <button onclick="optimize('popOut')">Optimize Pop Out</button>
+        </div>
+    </div>
+
+    <div class="results">
+        <h3>Optimization Results</h3>
+        <div id="resultsContent">
+            <div class="stage-info">
+                <div>
+                    <h4>Three Stage Booster</h4>
+                    <p>Total ΔV: <span id="totalDeltaV3">0</span> m/s</p>
+                    <p>Stage 1 ΔV: <span id="stage1DeltaV">0</span> m/s</p>
+                    <p>Stage 2 ΔV: <span id="stage2DeltaV">0</span> m/s</p>
+                    <p>Stage 3 ΔV: <span id="stage3DeltaV">0</span> m/s</p>
+                </div>
+                <div>
+                    <h4>Pop Out Booster</h4>
+                    <p>Total ΔV: <span id="totalDeltaVp">0</span> m/s</p>
+                    <p>Core ΔV: <span id="coreDeltaV">0</span> m/s</p>
+                    <p>Booster 1 ΔV: <span id="booster1DeltaV">0</span> m/s</p>
+                    <p>Booster 2 ΔV: <span id="booster2DeltaV">0</span> m/s</p>
+                </div>
+            </div>
         </div>
     </div>
     
     <script>
+        // Add debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
         function updateInput(id, value) {
             document.getElementById(id).value = value;
-            updateComparison();
+            updateRocketVisualization();
         }
+
         function updateSlider(id, value) {
             document.getElementById(id).value = value;
-            updateComparison();
+            updateRocketVisualization();
         }
-        function updateRocket(id, value) {
-            document.getElementById(id).style.height = value + "px";
+
+        // Debounced optimization function
+        const debouncedOptimize = debounce((type) => {
+            optimize(type);
+        }, 500); // Wait 500ms after last input before calculating
+
+        // Update event listeners for inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add input event listeners to all number inputs
+            const numberInputs = document.querySelectorAll('input[type="number"]');
+            numberInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    const id = this.id;
+                    const inputId = id.split('_')[0];
+                    if (inputId.startsWith('mass') || inputId.startsWith('length')) {
+                        const stageNumber = inputId.replace(/[^0-9]/g, '');
+                        if (stageNumber <= 3) {
+                            debouncedOptimize('threeStage');
+                        } else {
+                            debouncedOptimize('popOut');
+                        }
+                    }
+                });
+            });
+
+            // Add change event listeners to all range inputs
+            const rangeInputs = document.querySelectorAll('input[type="range"]');
+            rangeInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const id = this.id;
+                    if (id.startsWith('mass') || id.startsWith('length')) {
+                        const stageNumber = id.replace(/[^0-9]/g, '');
+                        if (stageNumber <= 3) {
+                            debouncedOptimize('threeStage');
+                        } else {
+                            debouncedOptimize('popOut');
+                        }
+                    }
+                });
+            });
+        });
+
+        function updateRocketVisualization() {
+            // Update rocket visualization based on lengths
+            const lengths = [
+                parseFloat(document.getElementById('length1_val').value),
+                parseFloat(document.getElementById('length2_val').value),
+                parseFloat(document.getElementById('length3_val').value)
+            ];
+            
+            // Scale the heights proportionally
+            const maxHeight = 100;
+            const totalLength = lengths.reduce((a, b) => a + b, 0);
+            const heights = lengths.map(l => (l / totalLength) * maxHeight);
+            
+            document.getElementById('rocket1_section1').style.height = heights[0] + 'px';
+            document.getElementById('rocket1_section2').style.height = heights[1] + 'px';
+            document.getElementById('rocket1_section3').style.height = heights[2] + 'px';
         }
-        function updateComparison() {
-            let deltaV3 = parseFloat(document.getElementById('mass1').value);
-            let deltaVp = parseFloat(document.getElementById('mass2').value);
-            let comparisonText = document.getElementById('comparisonText');
+
+        function updateComparison(deltaV3, deltaVp) {
+            const comparisonText = document.getElementById('comparisonText');
+            document.getElementById('deltaV3').textContent = deltaV3.toFixed(2);
+            document.getElementById('deltaVp').textContent = deltaVp.toFixed(2);
             
             if (deltaVp > deltaV3) {
                 comparisonText.textContent = 'ΔV₃ < ΔVₚ';
@@ -145,6 +306,66 @@
                 comparisonText.textContent = 'ΔV₃ = ΔVₚ';
             }
         }
+
+        async function optimize(type) {
+            const data = {
+                mass1: document.getElementById('mass1_val').value,
+                mass2: document.getElementById('mass2_val').value,
+                mass3: document.getElementById('mass3_val').value,
+                length1: document.getElementById('length1_val').value,
+                length2: document.getElementById('length2_val').value,
+                length3: document.getElementById('length3_val').value,
+                mass4: document.getElementById('mass4_val').value,
+                mass5: document.getElementById('mass5_val').value,
+                mass6: document.getElementById('mass6_val').value,
+                length4: document.getElementById('length4_val').value,
+                length5: document.getElementById('length5_val').value,
+                length6: document.getElementById('length6_val').value
+            };
+
+            try {
+                console.log('Sending request to optimization server...');
+                const response = await fetch('http://localhost:5000/optimize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('Received response:', result);
+                
+                if (type === 'threeStage') {
+                    // Update three stage results
+                    document.getElementById('totalDeltaV3').textContent = result.three_stage.delta_v.toFixed(2);
+                    document.getElementById('stage1DeltaV').textContent = result.three_stage.stage_delta_vs[0].toFixed(2);
+                    document.getElementById('stage2DeltaV').textContent = result.three_stage.stage_delta_vs[1].toFixed(2);
+                    document.getElementById('stage3DeltaV').textContent = result.three_stage.stage_delta_vs[2].toFixed(2);
+                } else {
+                    // Update pop out results
+                    document.getElementById('totalDeltaVp').textContent = result.pop_out.delta_v.toFixed(2);
+                    document.getElementById('coreDeltaV').textContent = result.pop_out.stage_delta_vs[0].toFixed(2);
+                    document.getElementById('booster1DeltaV').textContent = result.pop_out.stage_delta_vs[1].toFixed(2);
+                    document.getElementById('booster2DeltaV').textContent = result.pop_out.stage_delta_vs[2].toFixed(2);
+                }
+
+                // Update comparison
+                const deltaV3 = parseFloat(document.getElementById('totalDeltaV3').textContent);
+                const deltaVp = parseFloat(document.getElementById('totalDeltaVp').textContent);
+                updateComparison(deltaV3, deltaVp);
+            } catch (error) {
+                console.error('Error details:', error);
+                alert(`Error connecting to optimization server: ${error.message}\n\nMake sure the Python backend is running and accessible at http://localhost:5000`);
+            }
+        }
+
+        // Initialize rocket visualization
+        updateRocketVisualization();
     </script>
 </body>
 </html>

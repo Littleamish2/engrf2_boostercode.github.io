@@ -90,11 +90,36 @@
             border: 1px solid orange;
             border-radius: 5px;
         }
+        .calculation-mode {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid orange;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .calculation-mode select {
+            background-color: #333;
+            color: orange;
+            border: 1px solid orange;
+            padding: 5px;
+            margin-left: 10px;
+        }
+        .parameter-group.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
     <div class="comparison">
         <h2>Rocket Booster Optimization</h2>
+        <div class="calculation-mode">
+            <label>Calculation Mode:</label>
+            <select id="calculationMode" onchange="updateCalculationMode()">
+                <option value="mass">Mass-Based</option>
+                <option value="length">Length-Based</option>
+            </select>
+        </div>
         <div class="delta-v-comparison">
             <p id="comparisonText">ΔV₃ = ΔVₚ</p>
             <div class="delta-v-values">
@@ -307,7 +332,48 @@
             }
         }
 
+        function updateCalculationMode() {
+            const mode = document.getElementById('calculationMode').value;
+            const massInputs = document.querySelectorAll('input[id*="mass"]');
+            const lengthInputs = document.querySelectorAll('input[id*="length"]');
+            
+            if (mode === 'mass') {
+                massInputs.forEach(input => {
+                    input.parentElement.classList.remove('disabled');
+                });
+                lengthInputs.forEach(input => {
+                    input.parentElement.classList.add('disabled');
+                    // Set default length values
+                    const id = input.id.replace('_val', '');
+                    if (id.includes('1') || id.includes('2') || id.includes('3')) {
+                        input.value = '3.33';
+                    } else {
+                        input.value = '3.33';
+                    }
+                });
+            } else {
+                massInputs.forEach(input => {
+                    input.parentElement.classList.add('disabled');
+                    // Set default mass values
+                    const id = input.id.replace('_val', '');
+                    if (id.includes('1') || id.includes('2') || id.includes('3')) {
+                        input.value = '50';
+                    } else {
+                        input.value = '50';
+                    }
+                });
+                lengthInputs.forEach(input => {
+                    input.parentElement.classList.remove('disabled');
+                });
+            }
+            
+            // Trigger optimization for both types
+            optimize('threeStage');
+            optimize('popOut');
+        }
+
         async function optimize(type) {
+            const mode = document.getElementById('calculationMode').value;
             const data = {
                 mass1: document.getElementById('mass1_val').value,
                 mass2: document.getElementById('mass2_val').value,
@@ -320,7 +386,8 @@
                 mass6: document.getElementById('mass6_val').value,
                 length4: document.getElementById('length4_val').value,
                 length5: document.getElementById('length5_val').value,
-                length6: document.getElementById('length6_val').value
+                length6: document.getElementById('length6_val').value,
+                mode: mode
             };
 
             try {

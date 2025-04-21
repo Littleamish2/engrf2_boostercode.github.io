@@ -6,7 +6,6 @@ const meters_to_inches = 39.3700787402;
 const kg_to_lbs = 2.20462;
 const payload = 250 * kg_to_lbs;  // in lbs
 
-// Function to calculate the three-stage booster delta-v
 function calculate_three_stage(data) {
     console.log('Calculating three stage with data:', data);
     // Extract parameters from request
@@ -19,7 +18,7 @@ function calculate_three_stage(data) {
     // Calculate launch weights using length-based calculation
     const launch_weights = lengths.map(l => 0.04 * (l * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches) + payload);
 
-    // Calculate final masses (22% of launch weight remains as structure)
+    // Calculate final masses (22% of launch weight remains as structure, including payload)
     const final_masses = launch_weights.map(w => w * 0.22 + payload);
 
     // Calculate mass fractions for each stage
@@ -50,7 +49,6 @@ function calculate_three_stage(data) {
     };
 }
 
-// Function to calculate the pop-out booster delta-v
 function calculate_pop_out(data) {
     console.log('Calculating pop out with data:', data);
     // Extract parameters from request
@@ -63,7 +61,7 @@ function calculate_pop_out(data) {
     const booster1_weight = 0.04 * (booster1_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches);
     const booster2_weight = 0.04 * (booster2_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches);
 
-    // Calculate final masses (22% of launch weight remains as structure)
+    // Calculate final masses (22% of launch weight remains as structure, including payload)
     const core_final = core_weight * 0.22 + payload;
     const booster1_final = booster1_weight * 0.22;
     const booster2_final = booster2_weight * 0.22;

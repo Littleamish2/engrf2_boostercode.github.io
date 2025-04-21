@@ -237,8 +237,19 @@
     
     <script src="calculations.js"></script>
     <script>
+        // Make calculation functions globally available
+        window.calculate_three_stage = calculate_three_stage;
+        window.calculate_pop_out = calculate_pop_out;
+
         // Wait for calculations.js to load
         window.addEventListener('load', function() {
+            // Verify calculations are available
+            if (typeof calculate_three_stage === 'undefined' || typeof calculate_pop_out === 'undefined') {
+                console.error('Calculation functions not loaded!');
+                alert('Error: Calculation functions not loaded. Please refresh the page.');
+                return;
+            }
+
             // Add debounce function
             function debounce(func, wait) {
                 let timeout;

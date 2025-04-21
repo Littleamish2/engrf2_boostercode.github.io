@@ -6,7 +6,8 @@ const meters_to_inches = 39.3700787402;
 const kg_to_lbs = 2.20462;
 const payload = 250 * kg_to_lbs;  // in lbs
 
-function calculate_three_stage(data) {
+// Make functions globally available
+window.calculate_three_stage = function(data) {
     // Extract parameters from request
     const masses = [
         parseFloat(data.mass1),
@@ -48,9 +49,9 @@ function calculate_three_stage(data) {
         stage_delta_vs: delta_v,
         mass_fractions: [stage_1_mf, stage_2_mf, stage_3_mf]
     };
-}
+};
 
-function calculate_pop_out(data) {
+window.calculate_pop_out = function(data) {
     // Extract parameters from request
     const core_mass = parseFloat(data.mass4);
     const booster1_mass = parseFloat(data.mass5);
@@ -95,4 +96,4 @@ function calculate_pop_out(data) {
         stage_delta_vs: delta_v,
         mass_fractions: [core_mf, booster1_mf, booster2_mf]
     };
-} 
+}; 

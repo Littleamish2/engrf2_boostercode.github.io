@@ -171,12 +171,6 @@
             <button onclick="optimize('threeStage')">Optimize Three Stage</button>
         </div>
         
-        <div class="rocket">
-            <div class="section" id="rocket1_section1" style="height:50px;"></div>
-            <div class="section" id="rocket1_section2" style="height:50px;"></div>
-            <div class="section" id="rocket1_section3" style="height:50px;"></div>
-        </div>
-
         <div class="booster">
             <h2>Pop Out Booster</h2>
             <div class="parameter-group">
@@ -269,17 +263,18 @@
                 launch_weights = lengths.map(l => 0.04 * (l * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches) + payload);
             }
             
-            // Calculate final masses
+            // Calculate final masses (assuming 22% of propellant mass remains as structure)
             const final_masses = launch_weights.map(w => w * 0.22 + payload);
             
-            // Calculate mass fractions
-            const stage_1_mf = launch_weights.reduce((a, b) => a + b) / (launch_weights.slice(1).reduce((a, b) => a + b) + final_masses[0]);
-            const stage_2_mf = launch_weights.slice(1).reduce((a, b) => a + b) / (launch_weights[2] + final_masses[1]);
+            // Calculate mass fractions for each stage
+            const stage_1_mf = (launch_weights[0] + launch_weights[1] + launch_weights[2]) / 
+                             (launch_weights[1] + launch_weights[2] + final_masses[0]);
+            const stage_2_mf = (launch_weights[1] + launch_weights[2]) / 
+                             (launch_weights[2] + final_masses[1]);
             const stage_3_mf = launch_weights[2] / final_masses[2];
             
             // Calculate delta V
             const delta_v = [stage_1_mf, stage_2_mf, stage_3_mf].map(mf => Math.log(mf) * v_eq);
-            delta_v[0] = delta_v[0] - g * 10;  // First stage burns for 10 seconds
             const total_delta_v = delta_v.reduce((a, b) => a + b);
             
             console.log('Three stage result:', { delta_v: total_delta_v, stage_delta_vs: delta_v });
@@ -316,19 +311,20 @@
                 booster2_weight = 0.04 * (booster2_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches);
             }
             
-            // Calculate final masses
+            // Calculate final masses (assuming 22% of propellant mass remains as structure)
             const core_final = core_weight * 0.22 + payload;
             const booster1_final = booster1_weight * 0.22;
             const booster2_final = booster2_weight * 0.22;
             
-            // Calculate mass fractions
-            const core_mf = (core_weight + booster1_weight + booster2_weight) / (core_final + booster1_final + booster2_final);
-            const booster1_mf = (core_weight + booster1_weight) / (core_final + booster1_final);
+            // Calculate mass fractions for each stage
+            const core_mf = (core_weight + booster1_weight + booster2_weight) / 
+                          (core_final + booster1_final + booster2_final);
+            const booster1_mf = (core_weight + booster1_weight) / 
+                              (core_final + booster1_final);
             const booster2_mf = core_weight / core_final;
             
             // Calculate delta V
             const delta_v = [core_mf, booster1_mf, booster2_mf].map(mf => Math.log(mf) * v_eq);
-            delta_v[0] = delta_v[0] - g * 10;  // First stage burns for 10 seconds
             const total_delta_v = delta_v.reduce((a, b) => a + b);
             
             console.log('Pop out result:', { delta_v: total_delta_v, stage_delta_vs: delta_v });

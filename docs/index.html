@@ -267,26 +267,29 @@
             const booster2_length = parseFloat(data.length6) || 0;
             
             // Calculate launch weights using length-based calculation
-            const core_weight = 0.04 * (core_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches) + payload;
+            const core_weight = 0.04 * (core_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches);
             const booster1_weight = 0.04 * (booster1_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches);
             const booster2_weight = 0.04 * (booster2_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches);
             
+            // Add payload to core weight
+            const total_core_weight = core_weight + payload;
+            
             // Calculate final masses (22% of launch weight remains as structure)
-            const core_final = core_weight * 0.22 + payload;
+            const core_final = total_core_weight * 0.22 + payload;
             const booster1_final = booster1_weight * 0.22;
             const booster2_final = booster2_weight * 0.22;
             
             // Calculate mass fractions for each stage
             // First stage: All boosters burn together
-            const stage1_mf = (core_weight + booster1_weight + booster2_weight) / 
+            const stage1_mf = (total_core_weight + booster1_weight + booster2_weight) / 
                             (core_final + booster1_final + booster2_final);
             
             // Second stage: Core and booster1 burn together
-            const stage2_mf = (core_weight + booster1_weight) / 
+            const stage2_mf = (total_core_weight + booster1_weight) / 
                             (core_final + booster1_final);
             
             // Third stage: Only core burns
-            const stage3_mf = core_weight / core_final;
+            const stage3_mf = total_core_weight / core_final;
             
             // Calculate delta V with gravity loss for first stage
             const delta_v = [
@@ -311,7 +314,7 @@
                 stage_delta_vs: delta_v,
                 mass_fractions: [stage1_mf, stage2_mf, stage3_mf],
                 weights: {
-                    core: core_weight,
+                    core: total_core_weight,
                     booster1: booster1_weight,
                     booster2: booster2_weight
                 },

@@ -236,6 +236,15 @@
             ];
             const total_delta_v = delta_v.reduce((a, b) => a + b);
             
+            // If any mass fraction is less than 1, set delta-v to 0
+            if (stage_1_mf <= 1 || stage_2_mf <= 1 || stage_3_mf <= 1) {
+                return {
+                    delta_v: 0,
+                    stage_delta_vs: [0, 0, 0],
+                    mass_fractions: [stage_1_mf, stage_2_mf, stage_3_mf]
+                };
+            }
+            
             console.log('Three stage result:', { 
                 delta_v: total_delta_v, 
                 stage_delta_vs: delta_v,
@@ -286,6 +295,15 @@
                 Math.log(booster2_mf) * v_eq
             ];
             const total_delta_v = delta_v.reduce((a, b) => a + b);
+            
+            // If any mass fraction is less than 1, set delta-v to 0
+            if (core_mf <= 1 || booster1_mf <= 1 || booster2_mf <= 1) {
+                return {
+                    delta_v: 0,
+                    stage_delta_vs: [0, 0, 0],
+                    mass_fractions: [core_mf, booster1_mf, booster2_mf]
+                };
+            }
             
             console.log('Pop out result:', { 
                 delta_v: total_delta_v, 

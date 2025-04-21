@@ -74,11 +74,11 @@ function calculate_pop_out(data) {
     const booster2_final = booster2_weight * 0.22;
     
     // Calculate mass fractions for each stage
-    // Core stage: m0 = total weight, mf = final masses
+    // Core stage: m0 = total weight, mf = core + boosters final
     const core_mf = (core_weight + booster1_weight + booster2_weight) / 
                   (core_final + booster1_final + booster2_final);
     
-    // Booster 1: m0 = core + booster1, mf = final masses
+    // Booster 1: m0 = core + booster1, mf = core + booster1 final
     const booster1_mf = (core_weight + booster1_weight) / 
                       (core_final + booster1_final);
     
@@ -92,6 +92,15 @@ function calculate_pop_out(data) {
         Math.log(booster2_mf) * v_eq
     ];
     const total_delta_v = delta_v.reduce((a, b) => a + b);
+    
+    // If any mass fraction is less than 1, set delta-v to 0
+    if (core_mf <= 1 || booster1_mf <= 1 || booster2_mf <= 1) {
+        return {
+            delta_v: 0,
+            stage_delta_vs: [0, 0, 0],
+            mass_fractions: [core_mf, booster1_mf, booster2_mf]
+        };
+    }
     
     console.log('Pop out result:', { 
         delta_v: total_delta_v, 

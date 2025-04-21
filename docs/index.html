@@ -235,6 +235,7 @@
         </div>
     </div>
     
+    <script src="calculations.js"></script>
     <script>
         // Add debounce function
         function debounce(func, wait) {
@@ -391,34 +392,21 @@
             };
 
             try {
-                console.log('Sending request to optimization server...');
-                const response = await fetch('http://localhost:5000/optimize', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                console.log('Received response:', result);
-                
+                let result;
                 if (type === 'threeStage') {
+                    result = calculate_three_stage(data);
                     // Update three stage results
-                    document.getElementById('totalDeltaV3').textContent = result.three_stage.delta_v.toFixed(2);
-                    document.getElementById('stage1DeltaV').textContent = result.three_stage.stage_delta_vs[0].toFixed(2);
-                    document.getElementById('stage2DeltaV').textContent = result.three_stage.stage_delta_vs[1].toFixed(2);
-                    document.getElementById('stage3DeltaV').textContent = result.three_stage.stage_delta_vs[2].toFixed(2);
+                    document.getElementById('totalDeltaV3').textContent = result.delta_v.toFixed(2);
+                    document.getElementById('stage1DeltaV').textContent = result.stage_delta_vs[0].toFixed(2);
+                    document.getElementById('stage2DeltaV').textContent = result.stage_delta_vs[1].toFixed(2);
+                    document.getElementById('stage3DeltaV').textContent = result.stage_delta_vs[2].toFixed(2);
                 } else {
+                    result = calculate_pop_out(data);
                     // Update pop out results
-                    document.getElementById('totalDeltaVp').textContent = result.pop_out.delta_v.toFixed(2);
-                    document.getElementById('coreDeltaV').textContent = result.pop_out.stage_delta_vs[0].toFixed(2);
-                    document.getElementById('booster1DeltaV').textContent = result.pop_out.stage_delta_vs[1].toFixed(2);
-                    document.getElementById('booster2DeltaV').textContent = result.pop_out.stage_delta_vs[2].toFixed(2);
+                    document.getElementById('totalDeltaVp').textContent = result.delta_v.toFixed(2);
+                    document.getElementById('coreDeltaV').textContent = result.stage_delta_vs[0].toFixed(2);
+                    document.getElementById('booster1DeltaV').textContent = result.stage_delta_vs[1].toFixed(2);
+                    document.getElementById('booster2DeltaV').textContent = result.stage_delta_vs[2].toFixed(2);
                 }
 
                 // Update comparison
@@ -427,7 +415,7 @@
                 updateComparison(deltaV3, deltaVp);
             } catch (error) {
                 console.error('Error details:', error);
-                alert(`Error connecting to optimization server: ${error.message}\n\nMake sure the Python backend is running and accessible at http://localhost:5000`);
+                alert(`Error in calculations: ${error.message}`);
             }
         }
 

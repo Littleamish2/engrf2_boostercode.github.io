@@ -1,132 +1,535 @@
-// Constants from the optimization code
-const specific_impulse = 250;  // seconds
-const g = 9.80665;  // m/s^2
-const v_eq = g * specific_impulse;
-const meters_to_inches = 39.3700787402;
-const kg_to_lbs = 2.20462;
-const payload = 250 * kg_to_lbs;  // in lbs
-
-// Define the functions first
-function calculate_three_stage(data) {
-    console.log('Calculating three stage with data:', data);
-    // Extract parameters from request
-    const lengths = [
-        parseFloat(data.length1) || 0,
-        parseFloat(data.length2) || 0,
-        parseFloat(data.length3) || 0
-    ];
-    
-    // Calculate launch weights using length-based calculation
-    const launch_weights = lengths.map(l => 0.04 * (l * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches) + payload);
-    
-    // Calculate final masses (22% of launch weight remains as structure)
-    const final_masses = launch_weights.map(w => w * 0.22 + payload);
-    
-    // Calculate mass fractions for each stage
-    // Stage 1: m0 = total launch weight, mf = remaining stages + final mass
-    const stage_1_mf = (launch_weights[0] + launch_weights[1] + launch_weights[2]) / 
-                     (launch_weights[1] + launch_weights[2] + final_masses[0]);
-    
-    // Stage 2: m0 = remaining stages, mf = final stage + final mass
-    const stage_2_mf = (launch_weights[1] + launch_weights[2]) / 
-                     (launch_weights[2] + final_masses[1]);
-    
-    // Stage 3: m0 = final stage, mf = final mass
-    const stage_3_mf = launch_weights[2] / final_masses[2];
-    
-    // Calculate delta V with gravity loss for first stage
-    const delta_v = [
-        Math.log(stage_1_mf) * v_eq - g * 10,  // First stage burns for 10 seconds
-        Math.log(stage_2_mf) * v_eq,
-        Math.log(stage_3_mf) * v_eq
-    ];
-    const total_delta_v = delta_v.reduce((a, b) => a + b);
-    
-    console.log('Three stage result:', { 
-        delta_v: total_delta_v, 
-        stage_delta_vs: delta_v,
-        mass_fractions: [stage_1_mf, stage_2_mf, stage_3_mf],
-        launch_weights: launch_weights,
-        final_masses: final_masses
-    });
-    return {
-        delta_v: total_delta_v,
-        stage_delta_vs: delta_v,
-        mass_fractions: [stage_1_mf, stage_2_mf, stage_3_mf]
-    };
-}
-
-function calculate_pop_out(data) {
-    console.log('Calculating pop out with data:', data);
-    // Extract parameters from request
-    const core_length = parseFloat(data.length4) || 0;
-    const booster1_length = parseFloat(data.length5) || 0;
-    const booster2_length = parseFloat(data.length6) || 0;
-    
-    // Calculate launch weights using length-based calculation
-    const core_weight = 0.04 * (core_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches) + payload;
-    const booster1_weight = 0.04 * (booster1_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches);
-    const booster2_weight = 0.04 * (booster2_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches);
-    
-    // Calculate final masses (22% of launch weight remains as structure)
-    const core_final = core_weight * 0.22 + payload;
-    const booster1_final = booster1_weight * 0.22;
-    const booster2_final = booster2_weight * 0.22;
-    
-    // Calculate mass fractions for each stage
-    // Core stage: m0 = total weight, mf = core + boosters final
-    const core_mf = (core_weight + booster1_weight + booster2_weight) / 
-                  (core_final + booster1_final + booster2_final);
-    
-    // Booster 1: m0 = core + booster1, mf = core + booster1 final
-    const booster1_mf = (core_weight + booster1_weight) / 
-                      (core_final + booster1_final);
-    
-    // Booster 2: m0 = core, mf = core final
-    const booster2_mf = core_weight / core_final;
-    
-    // Calculate delta V with gravity loss for first stage
-    const delta_v = [
-        Math.log(core_mf) * v_eq - g * 10,  // First stage burns for 10 seconds
-        Math.log(booster1_mf) * v_eq,
-        Math.log(booster2_mf) * v_eq
-    ];
-    const total_delta_v = delta_v.reduce((a, b) => a + b);
-    
-    // If any mass fraction is less than 1, set delta-v to 0
-    if (core_mf <= 1 || booster1_mf <= 1 || booster2_mf <= 1) {
-        return {
-            delta_v: 0,
-            stage_delta_vs: [0, 0, 0],
-            mass_fractions: [core_mf, booster1_mf, booster2_mf]
-        };
-    }
-    
-    console.log('Pop out result:', { 
-        delta_v: total_delta_v, 
-        stage_delta_vs: delta_v,
-        mass_fractions: [core_mf, booster1_mf, booster2_mf],
-        weights: {
-            core: core_weight,
-            booster1: booster1_weight,
-            booster2: booster2_weight
-        },
-        final_masses: {
-            core: core_final,
-            booster1: booster1_final,
-            booster2: booster2_final
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket Booster Model</title>
+    <style>
+        body {
+            background-color: #333;
+            color: orange;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
         }
-    });
-    return {
-        delta_v: total_delta_v,
-        stage_delta_vs: delta_v,
-        mass_fractions: [core_mf, booster1_mf, booster2_mf]
-    };
-}
+        .container {
+            display: flex;
+            gap: 50px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .booster {
+            border: 2px solid orange;
+            padding: 20px;
+            min-width: 300px;
+        }
+        .comparison {
+            border: 2px solid white;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .rocket {
+            width: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px solid orange;
+        }
+        .section {
+            width: 50px;
+            background-color: orange;
+            border-bottom: 2px solid black;
+        }
+        input[type='range'] {
+            width: 100px;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 10px;
+            border: 2px solid white;
+            width: 100%;
+            max-width: 800px;
+        }
+        .parameter-group {
+            margin-bottom: 10px;
+        }
+        .parameter-group label {
+            display: inline-block;
+            width: 150px;
+        }
+        .parameter-group input {
+            margin-right: 10px;
+        }
+        .stage-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        .stage-info div {
+            text-align: center;
+            padding: 5px;
+        }
+        .delta-v-comparison {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+        .delta-v-values {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        .delta-v-value {
+            padding: 5px 15px;
+            border: 1px solid orange;
+            border-radius: 5px;
+        }
+        .calculation-mode {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid orange;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .calculation-mode select {
+            background-color: #333;
+            color: orange;
+            border: 1px solid orange;
+            padding: 5px;
+            margin-left: 10px;
+        }
+        .parameter-group.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="comparison">
+        <h2>Rocket Booster Optimization</h2>
+        <div class="delta-v-comparison">
+            <p id="comparisonText">ΔV₃ = ΔVₚ</p>
+            <div class="delta-v-values">
+                <div class="delta-v-value">
+                    <span>ΔV₃: </span>
+                    <span id="deltaV3">0</span> m/s
+                </div>
+                <div class="delta-v-value">
+                    <span>ΔVₚ: </span>
+                    <span id="deltaVp">0</span> m/s
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="booster">
+            <h2>Three Stage Booster</h2>
+            <div class="parameter-group">
+                <label>Stage 1 Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length1" oninput="updateInput('length1_val', this.value)">
+                <input type="number" id="length1_val" value="3.33" oninput="updateSlider('length1', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Stage 2 Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length2" oninput="updateInput('length2_val', this.value)">
+                <input type="number" id="length2_val" value="3.33" oninput="updateSlider('length2', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Stage 3 Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length3" oninput="updateInput('length3_val', this.value)">
+                <input type="number" id="length3_val" value="3.33" oninput="updateSlider('length3', this.value)">
+            </div>
+            <button onclick="optimize('threeStage')">Optimize Three Stage</button>
+        </div>
+        
+        <div class="booster">
+            <h2>Pop Out Booster</h2>
+            <div class="parameter-group">
+                <label>Core Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length4" oninput="updateInput('length4_val', this.value)">
+                <input type="number" id="length4_val" value="3.33" oninput="updateSlider('length4', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Booster 1 Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length5" oninput="updateInput('length5_val', this.value)">
+                <input type="number" id="length5_val" value="3.33" oninput="updateSlider('length5', this.value)">
+            </div>
+            <div class="parameter-group">
+                <label>Booster 2 Length (m):</label>
+                <input type="range" min="0" max="10" step="0.1" id="length6" oninput="updateInput('length6_val', this.value)">
+                <input type="number" id="length6_val" value="3.33" oninput="updateSlider('length6', this.value)">
+            </div>
+            <button onclick="optimize('popOut')">Optimize Pop Out</button>
+        </div>
+    </div>
 
-// Make functions globally available
-window.calculate_three_stage = calculate_three_stage;
-window.calculate_pop_out = calculate_pop_out;
+    <div class="results">
+        <h3>Optimization Results</h3>
+        <div id="resultsContent">
+            <div class="stage-info">
+                <div>
+                    <h4>Three Stage Booster</h4>
+                    <p>Total ΔV: <span id="totalDeltaV3">0</span> m/s</p>
+                    <p>Stage 1 ΔV: <span id="stage1DeltaV">0</span> m/s</p>
+                    <p>Stage 2 ΔV: <span id="stage2DeltaV">0</span> m/s</p>
+                    <p>Stage 3 ΔV: <span id="stage3DeltaV">0</span> m/s</p>
+                </div>
+                <div>
+                    <h4>Pop Out Booster</h4>
+                    <p>Total ΔV: <span id="totalDeltaVp">0</span> m/s</p>
+                    <p>Core ΔV: <span id="coreDeltaV">0</span> m/s</p>
+                    <p>Booster 1 ΔV: <span id="booster1DeltaV">0</span> m/s</p>
+                    <p>Booster 2 ΔV: <span id="booster2DeltaV">0</span> m/s</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Constants
+        const specific_impulse = 250;  // seconds
+        const g = 9.80665;  // m/s^2
+        const v_eq = g * specific_impulse;
+        const meters_to_inches = 39.3700787402;
+        const kg_to_lbs = 2.20462;
+        const payload = 250 * kg_to_lbs;  // in lbs
 
-// Log when the script is loaded
-console.log('Calculations.js loaded successfully'); 
+        function calculate_three_stage(data) {
+            console.log('Calculating three stage with data:', data);
+            // Extract parameters from request
+            const lengths = [
+                parseFloat(data.length1) || 0,
+                parseFloat(data.length2) || 0,
+                parseFloat(data.length3) || 0
+            ];
+            
+            // Calculate launch weights using length-based calculation
+            const launch_weights = lengths.map(l => 0.04 * (l * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches) + payload);
+            
+            // Calculate final masses (22% of launch weight remains as structure)
+            const final_masses = launch_weights.map(w => w * 0.22 + payload);
+            
+            // Calculate mass fractions for each stage
+            // Stage 1: m0 = total launch weight, mf = remaining stages + final mass
+            const stage_1_mf = (launch_weights[0] + launch_weights[1] + launch_weights[2]) / 
+                             (launch_weights[1] + launch_weights[2] + final_masses[0]);
+            
+            // Stage 2: m0 = remaining stages, mf = final stage + final mass
+            const stage_2_mf = (launch_weights[1] + launch_weights[2]) / 
+                             (launch_weights[2] + final_masses[1]);
+            
+            // Stage 3: m0 = final stage, mf = final mass
+            const stage_3_mf = launch_weights[2] / final_masses[2];
+            
+            // Calculate delta V with gravity loss for first stage
+            const delta_v = [
+                Math.log(stage_1_mf) * v_eq - g * 10,  // First stage burns for 10 seconds
+                Math.log(stage_2_mf) * v_eq,
+                Math.log(stage_3_mf) * v_eq
+            ];
+            const total_delta_v = delta_v.reduce((a, b) => a + b);
+            
+            // If any mass fraction is less than 1, set delta-v to 0
+            if (stage_1_mf <= 1 || stage_2_mf <= 1 || stage_3_mf <= 1) {
+                return {
+                    delta_v: 0,
+                    stage_delta_vs: [0, 0, 0],
+                    mass_fractions: [stage_1_mf, stage_2_mf, stage_3_mf]
+                };
+            }
+            
+            console.log('Three stage result:', { 
+                delta_v: total_delta_v, 
+                stage_delta_vs: delta_v,
+                mass_fractions: [stage_1_mf, stage_2_mf, stage_3_mf],
+                launch_weights: launch_weights,
+                final_masses: final_masses
+            });
+            return {
+                delta_v: total_delta_v,
+                stage_delta_vs: delta_v,
+                mass_fractions: [stage_1_mf, stage_2_mf, stage_3_mf]
+            };
+        }
+
+        function calculate_pop_out(data) {
+            console.log('Calculating pop out with data:', data);
+            // Extract parameters from request
+            const core_length = parseFloat(data.length4) || 0;
+            const booster1_length = parseFloat(data.length5) || 0;
+            const booster2_length = parseFloat(data.length6) || 0;
+            
+            // Calculate launch weights using length-based calculation
+            const core_weight = 0.04 * (core_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches) + payload;
+            const booster1_weight = 0.04 * (booster1_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches);
+            const booster2_weight = 0.04 * (booster2_length * meters_to_inches) * (1 * meters_to_inches) * (1 * meters_to_inches);
+            
+            // Calculate final masses (22% of launch weight remains as structure)
+            const core_final = core_weight * 0.22 + payload;
+            const booster1_final = booster1_weight * 0.22;
+            const booster2_final = booster2_weight * 0.22;
+            
+            // Calculate mass fractions for each stage
+            // Core stage: m0 = total weight, mf = core + boosters final
+            const core_mf = (core_weight + booster1_weight + booster2_weight) / 
+                          (core_final + booster1_final + booster2_final);
+            
+            // Booster 1: m0 = core + booster1, mf = core + booster1 final
+            const booster1_mf = (core_weight + booster1_weight) / 
+                              (core_final + booster1_final);
+            
+            // Booster 2: m0 = core, mf = core final
+            const booster2_mf = core_weight / core_final;
+            
+            // Calculate delta V with gravity loss for first stage
+            const delta_v = [
+                Math.log(core_mf) * v_eq - g * 10,  // First stage burns for 10 seconds
+                Math.log(booster1_mf) * v_eq,
+                Math.log(booster2_mf) * v_eq
+            ];
+            
+            // If any mass fraction is less than 1, set delta-v to 0
+            if (core_mf <= 1 || booster1_mf <= 1 || booster2_mf <= 1) {
+                return {
+                    delta_v: 0,
+                    stage_delta_vs: [0, 0, 0],
+                    mass_fractions: [core_mf, booster1_mf, booster2_mf]
+                };
+            }
+            
+            const total_delta_v = delta_v.reduce((a, b) => a + b);
+            
+            console.log('Pop out result:', { 
+                delta_v: total_delta_v, 
+                stage_delta_vs: delta_v,
+                mass_fractions: [core_mf, booster1_mf, booster2_mf],
+                weights: {
+                    core: core_weight,
+                    booster1: booster1_weight,
+                    booster2: booster2_weight
+                },
+                final_masses: {
+                    core: core_final,
+                    booster1: booster1_final,
+                    booster2: booster2_final
+                }
+            });
+            return {
+                delta_v: total_delta_v,
+                stage_delta_vs: delta_v,
+                mass_fractions: [core_mf, booster1_mf, booster2_mf]
+            };
+        }
+
+        // Add debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function updateInput(id, value) {
+            console.log('Updating input:', id, value);
+            const input = document.getElementById(id);
+            if (input) {
+                input.value = value;
+                // Update corresponding slider
+                const sliderId = id.replace('_val', '');
+                const slider = document.getElementById(sliderId);
+                if (slider) {
+                    slider.value = value;
+                }
+                // Trigger optimization based on input type
+                if (id.includes('length')) {
+                    const stageNumber = id.replace(/[^0-9]/g, '');
+                    if (stageNumber <= 3) {
+                        debouncedOptimize('threeStage');
+                    } else {
+                        debouncedOptimize('popOut');
+                    }
+                }
+                updateRocketVisualization();
+            }
+        }
+
+        function updateSlider(id, value) {
+            console.log('Updating slider:', id, value);
+            const slider = document.getElementById(id);
+            if (slider) {
+                slider.value = value;
+                // Update corresponding number input
+                const inputId = id + '_val';
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.value = value;
+                }
+                // Trigger optimization based on slider type
+                if (id.includes('length')) {
+                    const stageNumber = id.replace(/[^0-9]/g, '');
+                    if (stageNumber <= 3) {
+                        debouncedOptimize('threeStage');
+                    } else {
+                        debouncedOptimize('popOut');
+                    }
+                }
+                updateRocketVisualization();
+            }
+        }
+
+        function updateRocketVisualization() {
+            console.log('Updating rocket visualization');
+            // Update rocket visualization based on lengths
+            const lengths = [
+                parseFloat(document.getElementById('length1_val').value) || 0,
+                parseFloat(document.getElementById('length2_val').value) || 0,
+                parseFloat(document.getElementById('length3_val').value) || 0
+            ];
+            
+            // Scale the heights proportionally
+            const maxHeight = 100;
+            const totalLength = lengths.reduce((a, b) => a + b, 0) || 1; // Prevent division by zero
+            const heights = lengths.map(l => (l / totalLength) * maxHeight);
+            
+            document.getElementById('rocket1_section1').style.height = heights[0] + 'px';
+            document.getElementById('rocket1_section2').style.height = heights[1] + 'px';
+            document.getElementById('rocket1_section3').style.height = heights[2] + 'px';
+        }
+
+        function updateComparison(deltaV3, deltaVp) {
+            console.log('Updating comparison:', deltaV3, deltaVp);
+            const comparisonText = document.getElementById('comparisonText');
+            document.getElementById('deltaV3').textContent = deltaV3.toFixed(2);
+            document.getElementById('deltaVp').textContent = deltaVp.toFixed(2);
+            
+            if (deltaVp > deltaV3) {
+                comparisonText.textContent = 'ΔV₃ < ΔVₚ';
+            } else if (deltaVp < deltaV3) {
+                comparisonText.textContent = 'ΔV₃ > ΔVₚ';
+            } else {
+                comparisonText.textContent = 'ΔV₃ = ΔVₚ';
+            }
+        }
+
+        function optimize(type) {
+            console.log('Optimizing:', type);
+            const data = {
+                length1: document.getElementById('length1_val').value,
+                length2: document.getElementById('length2_val').value,
+                length3: document.getElementById('length3_val').value,
+                length4: document.getElementById('length4_val').value,
+                length5: document.getElementById('length5_val').value,
+                length6: document.getElementById('length6_val').value
+            };
+
+            console.log('Optimization data:', data);
+
+            try {
+                let result;
+                if (type === 'threeStage') {
+                    result = calculate_three_stage(data);
+                    // Update three stage results
+                    document.getElementById('totalDeltaV3').textContent = result.delta_v.toFixed(2);
+                    document.getElementById('stage1DeltaV').textContent = result.stage_delta_vs[0].toFixed(2);
+                    document.getElementById('stage2DeltaV').textContent = result.stage_delta_vs[1].toFixed(2);
+                    document.getElementById('stage3DeltaV').textContent = result.stage_delta_vs[2].toFixed(2);
+                } else {
+                    result = calculate_pop_out(data);
+                    // Update pop out results
+                    document.getElementById('totalDeltaVp').textContent = result.delta_v.toFixed(2);
+                    document.getElementById('coreDeltaV').textContent = result.stage_delta_vs[0].toFixed(2);
+                    document.getElementById('booster1DeltaV').textContent = result.stage_delta_vs[1].toFixed(2);
+                    document.getElementById('booster2DeltaV').textContent = result.stage_delta_vs[2].toFixed(2);
+                }
+
+                // Update comparison
+                const deltaV3 = parseFloat(document.getElementById('totalDeltaV3').textContent) || 0;
+                const deltaVp = parseFloat(document.getElementById('totalDeltaVp').textContent) || 0;
+                updateComparison(deltaV3, deltaVp);
+            } catch (error) {
+                console.error('Error in optimization:', error);
+                alert(`Error in calculations: ${error.message}`);
+            }
+        }
+
+        // Debounced optimization function
+        const debouncedOptimize = debounce((type) => {
+            console.log('Debounced optimization:', type);
+            optimize(type);
+        }, 500); // Wait 500ms after last input before calculating
+
+        // Wait for page to load
+        window.addEventListener('load', function() {
+            console.log('Page loaded');
+
+            // Add input event listeners to all number inputs
+            const numberInputs = document.querySelectorAll('input[type="number"]');
+            numberInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    console.log('Number input changed:', this.id, this.value);
+                    const id = this.id;
+                    const sliderId = id.replace('_val', '');
+                    const slider = document.getElementById(sliderId);
+                    if (slider) {
+                        slider.value = this.value;
+                    }
+                    // Trigger optimization based on input type
+                    if (id.includes('length')) {
+                        const stageNumber = id.replace(/[^0-9]/g, '');
+                        if (stageNumber <= 3) {
+                            debouncedOptimize('threeStage');
+                        } else {
+                            debouncedOptimize('popOut');
+                        }
+                    }
+                    updateRocketVisualization();
+                });
+            });
+
+            // Add input event listeners to all range inputs
+            const rangeInputs = document.querySelectorAll('input[type="range"]');
+            rangeInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    console.log('Range input changed:', this.id, this.value);
+                    const id = this.id;
+                    const inputId = id + '_val';
+                    const numberInput = document.getElementById(inputId);
+                    if (numberInput) {
+                        numberInput.value = this.value;
+                    }
+                    // Trigger optimization based on slider type
+                    if (id.includes('length')) {
+                        const stageNumber = id.replace(/[^0-9]/g, '');
+                        if (stageNumber <= 3) {
+                            debouncedOptimize('threeStage');
+                        } else {
+                            debouncedOptimize('popOut');
+                        }
+                    }
+                    updateRocketVisualization();
+                });
+            });
+
+            // Initialize rocket visualization
+            updateRocketVisualization();
+            
+            // Initial optimization
+            optimize('threeStage');
+            optimize('popOut');
+        });
+    </script>
+</body>
+</html>
+

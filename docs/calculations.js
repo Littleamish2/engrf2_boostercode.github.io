@@ -6,8 +6,9 @@ const meters_to_inches = 39.3700787402;
 const kg_to_lbs = 2.20462;
 const payload = 250 * kg_to_lbs;  // in lbs
 
-// Make functions globally available
-window.calculate_three_stage = function(data) {
+// Define the functions first
+function calculate_three_stage(data) {
+    console.log('Calculating three stage with data:', data);
     // Extract parameters from request
     const masses = [
         parseFloat(data.mass1),
@@ -44,14 +45,16 @@ window.calculate_three_stage = function(data) {
     delta_v[0] = delta_v[0] - g * 10;  // First stage burns for 10 seconds
     const total_delta_v = delta_v.reduce((a, b) => a + b);
     
+    console.log('Three stage calculation result:', { delta_v: total_delta_v, stage_delta_vs: delta_v });
     return {
         delta_v: total_delta_v,
         stage_delta_vs: delta_v,
         mass_fractions: [stage_1_mf, stage_2_mf, stage_3_mf]
     };
-};
+}
 
-window.calculate_pop_out = function(data) {
+function calculate_pop_out(data) {
+    console.log('Calculating pop out with data:', data);
     // Extract parameters from request
     const core_mass = parseFloat(data.mass4);
     const booster1_mass = parseFloat(data.mass5);
@@ -91,9 +94,17 @@ window.calculate_pop_out = function(data) {
     delta_v[0] = delta_v[0] - g * 10;  // First stage burns for 10 seconds
     const total_delta_v = delta_v.reduce((a, b) => a + b);
     
+    console.log('Pop out calculation result:', { delta_v: total_delta_v, stage_delta_vs: delta_v });
     return {
         delta_v: total_delta_v,
         stage_delta_vs: delta_v,
         mass_fractions: [core_mf, booster1_mf, booster2_mf]
     };
-}; 
+}
+
+// Make functions globally available
+window.calculate_three_stage = calculate_three_stage;
+window.calculate_pop_out = calculate_pop_out;
+
+// Log when the script is loaded
+console.log('Calculations.js loaded successfully'); 

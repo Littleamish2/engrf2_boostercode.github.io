@@ -277,30 +277,30 @@
             const booster2_final = booster2_weight * 0.22;
             
             // Calculate mass fractions for each stage
-            // Core stage: m0 = total weight, mf = core + boosters final
-            const core_mf = (core_weight + booster1_weight + booster2_weight) / 
-                          (core_final + booster1_final + booster2_final);
+            // First stage: All boosters burn together
+            const stage1_mf = (core_weight + booster1_weight + booster2_weight) / 
+                            (core_final + booster1_final + booster2_final);
             
-            // Booster 1: m0 = core + booster1, mf = core + booster1 final
-            const booster1_mf = (core_weight + booster1_weight) / 
-                              (core_final + booster1_final);
+            // Second stage: Core and booster1 burn together
+            const stage2_mf = (core_weight + booster1_weight) / 
+                            (core_final + booster1_final);
             
-            // Booster 2: m0 = core, mf = core final
-            const booster2_mf = core_weight / core_final;
+            // Third stage: Only core burns
+            const stage3_mf = core_weight / core_final;
             
             // Calculate delta V with gravity loss for first stage
             const delta_v = [
-                Math.log(core_mf) * v_eq - g * 10,  // First stage burns for 10 seconds
-                Math.log(booster1_mf) * v_eq,
-                Math.log(booster2_mf) * v_eq
+                Math.log(stage1_mf) * v_eq - g * 10,  // First stage burns for 10 seconds
+                Math.log(stage2_mf) * v_eq,
+                Math.log(stage3_mf) * v_eq
             ];
             
             // If any mass fraction is less than 1, set delta-v to 0
-            if (core_mf <= 1 || booster1_mf <= 1 || booster2_mf <= 1) {
+            if (stage1_mf <= 1 || stage2_mf <= 1 || stage3_mf <= 1) {
                 return {
                     delta_v: 0,
                     stage_delta_vs: [0, 0, 0],
-                    mass_fractions: [core_mf, booster1_mf, booster2_mf]
+                    mass_fractions: [stage1_mf, stage2_mf, stage3_mf]
                 };
             }
             
@@ -309,7 +309,7 @@
             console.log('Pop out result:', { 
                 delta_v: total_delta_v, 
                 stage_delta_vs: delta_v,
-                mass_fractions: [core_mf, booster1_mf, booster2_mf],
+                mass_fractions: [stage1_mf, stage2_mf, stage3_mf],
                 weights: {
                     core: core_weight,
                     booster1: booster1_weight,
@@ -324,7 +324,7 @@
             return {
                 delta_v: total_delta_v,
                 stage_delta_vs: delta_v,
-                mass_fractions: [core_mf, booster1_mf, booster2_mf]
+                mass_fractions: [stage1_mf, stage2_mf, stage3_mf]
             };
         }
 

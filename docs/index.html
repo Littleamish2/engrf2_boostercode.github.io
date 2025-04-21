@@ -237,6 +237,8 @@
     
     <script src="calculations.js"></script>
     <script>
+        console.log('Main script started');
+        
         // Make calculation functions globally available
         window.calculate_three_stage = calculate_three_stage;
         window.calculate_pop_out = calculate_pop_out;
@@ -255,16 +257,65 @@
         }
 
         function updateInput(id, value) {
-            document.getElementById(id).value = value;
+            console.log('Updating input:', id, value);
+            const input = document.getElementById(id);
+            input.value = value;
+            // Update corresponding slider
+            const sliderId = id.replace('_val', '');
+            const slider = document.getElementById(sliderId);
+            if (slider) {
+                slider.value = value;
+            }
+            // Trigger optimization based on input type
+            if (id.includes('mass')) {
+                const stageNumber = id.replace(/[^0-9]/g, '');
+                if (stageNumber <= 3) {
+                    debouncedOptimize('threeStage');
+                } else {
+                    debouncedOptimize('popOut');
+                }
+            } else if (id.includes('length')) {
+                const stageNumber = id.replace(/[^0-9]/g, '');
+                if (stageNumber <= 3) {
+                    debouncedOptimize('threeStage');
+                } else {
+                    debouncedOptimize('popOut');
+                }
+            }
             updateRocketVisualization();
         }
 
         function updateSlider(id, value) {
-            document.getElementById(id).value = value;
+            console.log('Updating slider:', id, value);
+            const slider = document.getElementById(id);
+            slider.value = value;
+            // Update corresponding number input
+            const inputId = id + '_val';
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.value = value;
+            }
+            // Trigger optimization based on slider type
+            if (id.includes('mass')) {
+                const stageNumber = id.replace(/[^0-9]/g, '');
+                if (stageNumber <= 3) {
+                    debouncedOptimize('threeStage');
+                } else {
+                    debouncedOptimize('popOut');
+                }
+            } else if (id.includes('length')) {
+                const stageNumber = id.replace(/[^0-9]/g, '');
+                if (stageNumber <= 3) {
+                    debouncedOptimize('threeStage');
+                } else {
+                    debouncedOptimize('popOut');
+                }
+            }
             updateRocketVisualization();
         }
 
         function updateCalculationMode() {
+            console.log('Updating calculation mode');
             const mode = document.getElementById('calculationMode').value;
             const massInputs = document.querySelectorAll('input[id*="mass"]');
             const lengthInputs = document.querySelectorAll('input[id*="length"]');
@@ -305,6 +356,7 @@
         }
 
         function updateRocketVisualization() {
+            console.log('Updating rocket visualization');
             // Update rocket visualization based on lengths
             const lengths = [
                 parseFloat(document.getElementById('length1_val').value),
@@ -323,6 +375,7 @@
         }
 
         function updateComparison(deltaV3, deltaVp) {
+            console.log('Updating comparison:', deltaV3, deltaVp);
             const comparisonText = document.getElementById('comparisonText');
             document.getElementById('deltaV3').textContent = deltaV3.toFixed(2);
             document.getElementById('deltaVp').textContent = deltaVp.toFixed(2);
@@ -337,6 +390,7 @@
         }
 
         function optimize(type) {
+            console.log('Optimizing:', type);
             const mode = document.getElementById('calculationMode').value;
             const data = {
                 mass1: document.getElementById('mass1_val').value,
@@ -353,6 +407,8 @@
                 length6: document.getElementById('length6_val').value,
                 mode: mode
             };
+
+            console.log('Optimization data:', data);
 
             try {
                 let result;
@@ -377,18 +433,20 @@
                 const deltaVp = parseFloat(document.getElementById('totalDeltaVp').textContent);
                 updateComparison(deltaV3, deltaVp);
             } catch (error) {
-                console.error('Error details:', error);
+                console.error('Error in optimization:', error);
                 alert(`Error in calculations: ${error.message}`);
             }
         }
 
         // Debounced optimization function
         const debouncedOptimize = debounce((type) => {
+            console.log('Debounced optimization:', type);
             optimize(type);
         }, 500); // Wait 500ms after last input before calculating
 
         // Wait for calculations.js to load
         window.addEventListener('load', function() {
+            console.log('Page loaded, checking calculations');
             // Verify calculations are available
             if (typeof calculate_three_stage === 'undefined' || typeof calculate_pop_out === 'undefined') {
                 console.error('Calculation functions not loaded!');
@@ -396,10 +454,13 @@
                 return;
             }
 
+            console.log('Calculations loaded successfully');
+
             // Add input event listeners to all number inputs
             const numberInputs = document.querySelectorAll('input[type="number"]');
             numberInputs.forEach(input => {
                 input.addEventListener('input', function() {
+                    console.log('Number input changed:', this.id, this.value);
                     const id = this.id;
                     const inputId = id.split('_')[0];
                     if (inputId.startsWith('mass') || inputId.startsWith('length')) {
@@ -413,10 +474,11 @@
                 });
             });
 
-            // Add change event listeners to all range inputs
+            // Add input event listeners to all range inputs
             const rangeInputs = document.querySelectorAll('input[type="range"]');
             rangeInputs.forEach(input => {
-                input.addEventListener('change', function() {
+                input.addEventListener('input', function() {
+                    console.log('Range input changed:', this.id, this.value);
                     const id = this.id;
                     if (id.startsWith('mass') || id.startsWith('length')) {
                         const stageNumber = id.replace(/[^0-9]/g, '');
@@ -431,6 +493,10 @@
 
             // Initialize rocket visualization
             updateRocketVisualization();
+            
+            // Initial optimization
+            optimize('threeStage');
+            optimize('popOut');
         });
     </script>
 </body>

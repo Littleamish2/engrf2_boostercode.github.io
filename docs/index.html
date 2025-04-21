@@ -241,6 +241,152 @@
         window.calculate_three_stage = calculate_three_stage;
         window.calculate_pop_out = calculate_pop_out;
 
+        // Add debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function updateInput(id, value) {
+            document.getElementById(id).value = value;
+            updateRocketVisualization();
+        }
+
+        function updateSlider(id, value) {
+            document.getElementById(id).value = value;
+            updateRocketVisualization();
+        }
+
+        function updateCalculationMode() {
+            const mode = document.getElementById('calculationMode').value;
+            const massInputs = document.querySelectorAll('input[id*="mass"]');
+            const lengthInputs = document.querySelectorAll('input[id*="length"]');
+            
+            if (mode === 'mass') {
+                massInputs.forEach(input => {
+                    input.parentElement.classList.remove('disabled');
+                });
+                lengthInputs.forEach(input => {
+                    input.parentElement.classList.add('disabled');
+                    // Set default length values
+                    const id = input.id.replace('_val', '');
+                    if (id.includes('1') || id.includes('2') || id.includes('3')) {
+                        input.value = '3.33';
+                    } else {
+                        input.value = '3.33';
+                    }
+                });
+            } else {
+                massInputs.forEach(input => {
+                    input.parentElement.classList.add('disabled');
+                    // Set default mass values
+                    const id = input.id.replace('_val', '');
+                    if (id.includes('1') || id.includes('2') || id.includes('3')) {
+                        input.value = '50';
+                    } else {
+                        input.value = '50';
+                    }
+                });
+                lengthInputs.forEach(input => {
+                    input.parentElement.classList.remove('disabled');
+                });
+            }
+            
+            // Trigger optimization for both types
+            optimize('threeStage');
+            optimize('popOut');
+        }
+
+        function updateRocketVisualization() {
+            // Update rocket visualization based on lengths
+            const lengths = [
+                parseFloat(document.getElementById('length1_val').value),
+                parseFloat(document.getElementById('length2_val').value),
+                parseFloat(document.getElementById('length3_val').value)
+            ];
+            
+            // Scale the heights proportionally
+            const maxHeight = 100;
+            const totalLength = lengths.reduce((a, b) => a + b, 0);
+            const heights = lengths.map(l => (l / totalLength) * maxHeight);
+            
+            document.getElementById('rocket1_section1').style.height = heights[0] + 'px';
+            document.getElementById('rocket1_section2').style.height = heights[1] + 'px';
+            document.getElementById('rocket1_section3').style.height = heights[2] + 'px';
+        }
+
+        function updateComparison(deltaV3, deltaVp) {
+            const comparisonText = document.getElementById('comparisonText');
+            document.getElementById('deltaV3').textContent = deltaV3.toFixed(2);
+            document.getElementById('deltaVp').textContent = deltaVp.toFixed(2);
+            
+            if (deltaVp > deltaV3) {
+                comparisonText.textContent = 'ΔV₃ < ΔVₚ';
+            } else if (deltaVp < deltaV3) {
+                comparisonText.textContent = 'ΔV₃ > ΔVₚ';
+            } else {
+                comparisonText.textContent = 'ΔV₃ = ΔVₚ';
+            }
+        }
+
+        function optimize(type) {
+            const mode = document.getElementById('calculationMode').value;
+            const data = {
+                mass1: document.getElementById('mass1_val').value,
+                mass2: document.getElementById('mass2_val').value,
+                mass3: document.getElementById('mass3_val').value,
+                length1: document.getElementById('length1_val').value,
+                length2: document.getElementById('length2_val').value,
+                length3: document.getElementById('length3_val').value,
+                mass4: document.getElementById('mass4_val').value,
+                mass5: document.getElementById('mass5_val').value,
+                mass6: document.getElementById('mass6_val').value,
+                length4: document.getElementById('length4_val').value,
+                length5: document.getElementById('length5_val').value,
+                length6: document.getElementById('length6_val').value,
+                mode: mode
+            };
+
+            try {
+                let result;
+                if (type === 'threeStage') {
+                    result = calculate_three_stage(data);
+                    // Update three stage results
+                    document.getElementById('totalDeltaV3').textContent = result.delta_v.toFixed(2);
+                    document.getElementById('stage1DeltaV').textContent = result.stage_delta_vs[0].toFixed(2);
+                    document.getElementById('stage2DeltaV').textContent = result.stage_delta_vs[1].toFixed(2);
+                    document.getElementById('stage3DeltaV').textContent = result.stage_delta_vs[2].toFixed(2);
+                } else {
+                    result = calculate_pop_out(data);
+                    // Update pop out results
+                    document.getElementById('totalDeltaVp').textContent = result.delta_v.toFixed(2);
+                    document.getElementById('coreDeltaV').textContent = result.stage_delta_vs[0].toFixed(2);
+                    document.getElementById('booster1DeltaV').textContent = result.stage_delta_vs[1].toFixed(2);
+                    document.getElementById('booster2DeltaV').textContent = result.stage_delta_vs[2].toFixed(2);
+                }
+
+                // Update comparison
+                const deltaV3 = parseFloat(document.getElementById('totalDeltaV3').textContent);
+                const deltaVp = parseFloat(document.getElementById('totalDeltaVp').textContent);
+                updateComparison(deltaV3, deltaVp);
+            } catch (error) {
+                console.error('Error details:', error);
+                alert(`Error in calculations: ${error.message}`);
+            }
+        }
+
+        // Debounced optimization function
+        const debouncedOptimize = debounce((type) => {
+            optimize(type);
+        }, 500); // Wait 500ms after last input before calculating
+
         // Wait for calculations.js to load
         window.addEventListener('load', function() {
             // Verify calculations are available
@@ -250,187 +396,38 @@
                 return;
             }
 
-            // Add debounce function
-            function debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
-            }
-
-            function updateInput(id, value) {
-                document.getElementById(id).value = value;
-                updateRocketVisualization();
-            }
-
-            function updateSlider(id, value) {
-                document.getElementById(id).value = value;
-                updateRocketVisualization();
-            }
-
-            function updateCalculationMode() {
-                const mode = document.getElementById('calculationMode').value;
-                const massInputs = document.querySelectorAll('input[id*="mass"]');
-                const lengthInputs = document.querySelectorAll('input[id*="length"]');
-                
-                if (mode === 'mass') {
-                    massInputs.forEach(input => {
-                        input.parentElement.classList.remove('disabled');
-                    });
-                    lengthInputs.forEach(input => {
-                        input.parentElement.classList.add('disabled');
-                        // Set default length values
-                        const id = input.id.replace('_val', '');
-                        if (id.includes('1') || id.includes('2') || id.includes('3')) {
-                            input.value = '3.33';
+            // Add input event listeners to all number inputs
+            const numberInputs = document.querySelectorAll('input[type="number"]');
+            numberInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    const id = this.id;
+                    const inputId = id.split('_')[0];
+                    if (inputId.startsWith('mass') || inputId.startsWith('length')) {
+                        const stageNumber = inputId.replace(/[^0-9]/g, '');
+                        if (stageNumber <= 3) {
+                            debouncedOptimize('threeStage');
                         } else {
-                            input.value = '3.33';
+                            debouncedOptimize('popOut');
                         }
-                    });
-                } else {
-                    massInputs.forEach(input => {
-                        input.parentElement.classList.add('disabled');
-                        // Set default mass values
-                        const id = input.id.replace('_val', '');
-                        if (id.includes('1') || id.includes('2') || id.includes('3')) {
-                            input.value = '50';
-                        } else {
-                            input.value = '50';
-                        }
-                    });
-                    lengthInputs.forEach(input => {
-                        input.parentElement.classList.remove('disabled');
-                    });
-                }
-                
-                // Trigger optimization for both types
-                optimize('threeStage');
-                optimize('popOut');
-            }
-
-            // Debounced optimization function
-            const debouncedOptimize = debounce((type) => {
-                optimize(type);
-            }, 500); // Wait 500ms after last input before calculating
-
-            // Update event listeners for inputs
-            document.addEventListener('DOMContentLoaded', function() {
-                // Add input event listeners to all number inputs
-                const numberInputs = document.querySelectorAll('input[type="number"]');
-                numberInputs.forEach(input => {
-                    input.addEventListener('input', function() {
-                        const id = this.id;
-                        const inputId = id.split('_')[0];
-                        if (inputId.startsWith('mass') || inputId.startsWith('length')) {
-                            const stageNumber = inputId.replace(/[^0-9]/g, '');
-                            if (stageNumber <= 3) {
-                                debouncedOptimize('threeStage');
-                            } else {
-                                debouncedOptimize('popOut');
-                            }
-                        }
-                    });
-                });
-
-                // Add change event listeners to all range inputs
-                const rangeInputs = document.querySelectorAll('input[type="range"]');
-                rangeInputs.forEach(input => {
-                    input.addEventListener('change', function() {
-                        const id = this.id;
-                        if (id.startsWith('mass') || id.startsWith('length')) {
-                            const stageNumber = id.replace(/[^0-9]/g, '');
-                            if (stageNumber <= 3) {
-                                debouncedOptimize('threeStage');
-                            } else {
-                                debouncedOptimize('popOut');
-                            }
-                        }
-                    });
+                    }
                 });
             });
 
-            function updateRocketVisualization() {
-                // Update rocket visualization based on lengths
-                const lengths = [
-                    parseFloat(document.getElementById('length1_val').value),
-                    parseFloat(document.getElementById('length2_val').value),
-                    parseFloat(document.getElementById('length3_val').value)
-                ];
-                
-                // Scale the heights proportionally
-                const maxHeight = 100;
-                const totalLength = lengths.reduce((a, b) => a + b, 0);
-                const heights = lengths.map(l => (l / totalLength) * maxHeight);
-                
-                document.getElementById('rocket1_section1').style.height = heights[0] + 'px';
-                document.getElementById('rocket1_section2').style.height = heights[1] + 'px';
-                document.getElementById('rocket1_section3').style.height = heights[2] + 'px';
-            }
-
-            function updateComparison(deltaV3, deltaVp) {
-                const comparisonText = document.getElementById('comparisonText');
-                document.getElementById('deltaV3').textContent = deltaV3.toFixed(2);
-                document.getElementById('deltaVp').textContent = deltaVp.toFixed(2);
-                
-                if (deltaVp > deltaV3) {
-                    comparisonText.textContent = 'ΔV₃ < ΔVₚ';
-                } else if (deltaVp < deltaV3) {
-                    comparisonText.textContent = 'ΔV₃ > ΔVₚ';
-                } else {
-                    comparisonText.textContent = 'ΔV₃ = ΔVₚ';
-                }
-            }
-
-            function optimize(type) {
-                const mode = document.getElementById('calculationMode').value;
-                const data = {
-                    mass1: document.getElementById('mass1_val').value,
-                    mass2: document.getElementById('mass2_val').value,
-                    mass3: document.getElementById('mass3_val').value,
-                    length1: document.getElementById('length1_val').value,
-                    length2: document.getElementById('length2_val').value,
-                    length3: document.getElementById('length3_val').value,
-                    mass4: document.getElementById('mass4_val').value,
-                    mass5: document.getElementById('mass5_val').value,
-                    mass6: document.getElementById('mass6_val').value,
-                    length4: document.getElementById('length4_val').value,
-                    length5: document.getElementById('length5_val').value,
-                    length6: document.getElementById('length6_val').value,
-                    mode: mode
-                };
-
-                try {
-                    let result;
-                    if (type === 'threeStage') {
-                        result = calculate_three_stage(data);
-                        // Update three stage results
-                        document.getElementById('totalDeltaV3').textContent = result.delta_v.toFixed(2);
-                        document.getElementById('stage1DeltaV').textContent = result.stage_delta_vs[0].toFixed(2);
-                        document.getElementById('stage2DeltaV').textContent = result.stage_delta_vs[1].toFixed(2);
-                        document.getElementById('stage3DeltaV').textContent = result.stage_delta_vs[2].toFixed(2);
-                    } else {
-                        result = calculate_pop_out(data);
-                        // Update pop out results
-                        document.getElementById('totalDeltaVp').textContent = result.delta_v.toFixed(2);
-                        document.getElementById('coreDeltaV').textContent = result.stage_delta_vs[0].toFixed(2);
-                        document.getElementById('booster1DeltaV').textContent = result.stage_delta_vs[1].toFixed(2);
-                        document.getElementById('booster2DeltaV').textContent = result.stage_delta_vs[2].toFixed(2);
+            // Add change event listeners to all range inputs
+            const rangeInputs = document.querySelectorAll('input[type="range"]');
+            rangeInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const id = this.id;
+                    if (id.startsWith('mass') || id.startsWith('length')) {
+                        const stageNumber = id.replace(/[^0-9]/g, '');
+                        if (stageNumber <= 3) {
+                            debouncedOptimize('threeStage');
+                        } else {
+                            debouncedOptimize('popOut');
+                        }
                     }
-
-                    // Update comparison
-                    const deltaV3 = parseFloat(document.getElementById('totalDeltaV3').textContent);
-                    const deltaVp = parseFloat(document.getElementById('totalDeltaVp').textContent);
-                    updateComparison(deltaV3, deltaVp);
-                } catch (error) {
-                    console.error('Error details:', error);
-                    alert(`Error in calculations: ${error.message}`);
-                }
-            }
+                });
+            });
 
             // Initialize rocket visualization
             updateRocketVisualization();
@@ -438,3 +435,4 @@
     </script>
 </body>
 </html>
+

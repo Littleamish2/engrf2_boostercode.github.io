@@ -134,17 +134,17 @@
             <div class="parameter-group">
                 <label>Stage 1 Length (m):</label>
                 <input type="range" min="0" max="10" step="0.1" id="length1" oninput="updateInput('length1_val', this.value)">
-                <input type="number" id="length1_val" value="3.33" min="0" step="0.1" oninput="updateSlider('length1', this.value)">
+                <input type="text" id="length1_val" value="3.33" pattern="[0-9]*\.?[0-9]*" oninput="validateNumberInput(this, 'length1')">
             </div>
             <div class="parameter-group">
                 <label>Stage 2 Length (m):</label>
                 <input type="range" min="0" max="10" step="0.1" id="length2" oninput="updateInput('length2_val', this.value)">
-                <input type="number" id="length2_val" value="3.33" min="0" step="0.1" oninput="updateSlider('length2', this.value)">
+                <input type="text" id="length2_val" value="3.33" pattern="[0-9]*\.?[0-9]*" oninput="validateNumberInput(this, 'length2')">
             </div>
             <div class="parameter-group">
                 <label>Stage 3 Length (m):</label>
                 <input type="range" min="0" max="10" step="0.1" id="length3" oninput="updateInput('length3_val', this.value)">
-                <input type="number" id="length3_val" value="3.33" min="0" step="0.1" oninput="updateSlider('length3', this.value)">
+                <input type="text" id="length3_val" value="3.33" pattern="[0-9]*\.?[0-9]*" oninput="validateNumberInput(this, 'length3')">
             </div>
         </div>
         
@@ -153,17 +153,17 @@
             <div class="parameter-group">
                 <label>Core Length (m):</label>
                 <input type="range" min="0" max="10" step="0.1" id="length4" oninput="updateInput('length4_val', this.value)">
-                <input type="number" id="length4_val" value="3.33" min="0" step="0.1" oninput="updateSlider('length4', this.value)">
+                <input type="text" id="length4_val" value="3.33" pattern="[0-9]*\.?[0-9]*" oninput="validateNumberInput(this, 'length4')">
             </div>
             <div class="parameter-group">
                 <label>Booster 1 Length (m):</label>
                 <input type="range" min="0" max="10" step="0.1" id="length5" oninput="updateInput('length5_val', this.value)">
-                <input type="number" id="length5_val" value="3.33" min="0" step="0.1" oninput="updateSlider('length5', this.value)">
+                <input type="text" id="length5_val" value="3.33" pattern="[0-9]*\.?[0-9]*" oninput="validateNumberInput(this, 'length5')">
             </div>
             <div class="parameter-group">
                 <label>Booster 2 Length (m):</label>
                 <input type="range" min="0" max="10" step="0.1" id="length6" oninput="updateInput('length6_val', this.value)">
-                <input type="number" id="length6_val" value="3.33" min="0" step="0.1" oninput="updateSlider('length6', this.value)">
+                <input type="text" id="length6_val" value="3.33" pattern="[0-9]*\.?[0-9]*" oninput="validateNumberInput(this, 'length6')">
             </div>
         </div>
     </div>
@@ -340,6 +340,50 @@
                 clearTimeout(timeout);
                 timeout = setTimeout(later, wait);
             };
+        }
+
+        function validateNumberInput(input, sliderId) {
+            // Get the current value and cursor position
+            const cursorPosition = input.selectionStart;
+            const oldValue = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            let newValue = input.value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const decimalPoints = newValue.split('.').length - 1;
+            if (decimalPoints > 1) {
+                newValue = newValue.substring(0, newValue.lastIndexOf('.'));
+            }
+            
+            // Ensure value is between 0 and 10
+            const numValue = parseFloat(newValue) || 0;
+            if (numValue < 0) newValue = '0';
+            if (numValue > 10) newValue = '10';
+            
+            // Update the input value
+            input.value = newValue;
+            
+            // Restore cursor position
+            if (cursorPosition !== null) {
+                input.setSelectionRange(cursorPosition, cursorPosition);
+            }
+            
+            // Update the slider
+            const slider = document.getElementById(sliderId);
+            if (slider) {
+                slider.value = newValue;
+            }
+            
+            // Trigger optimization
+            const stageNumber = sliderId.replace(/[^0-9]/g, '');
+            if (stageNumber <= 3) {
+                debouncedOptimize('threeStage');
+            } else {
+                debouncedOptimize('popOut');
+            }
+            
+            updateRocketVisualization();
         }
 
         function updateInput(id, value) {

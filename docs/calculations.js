@@ -78,6 +78,16 @@ function calculate_pop_out(data) {
     console.log('Data: ' + popout_delta_v + ' ' + popout_stage_delta_vs + ' ' + popout_stage_mass_fractions)
 
     popout_delta_v -= g*10; //difference here! - g_0 * 10 seconds
+    if(popout_delta_v < 0) {
+        popout_delta_v = 0;
+    }
+    if(popout_stage_delta_vs[0] <0) {
+        popout_stage_delta_vs[2] = 0;
+        popout_stage_delta_vs[1] = 0;
+        popout_stage_delta_vs[0] = 0;
+        
+
+    }
     popout_stage_delta_vs[0] -= g*10;
     return { delta_v:popout_delta_v, stage_delta_vs:popout_stage_delta_vs, mass_fractions:popout_stage_mass_fractions};
 }

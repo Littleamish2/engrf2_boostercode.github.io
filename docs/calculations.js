@@ -62,11 +62,11 @@ function calculate_three_stage(data) {
 }
 function calculate_pop_out(data) {
     console.log('Calculating pop out with data:', data);
-    three_stage_calcs = calculate_three_stage(data);
-    popout_delta_v = three_stage_calcs[delta_v] - g*10; //difference here! - g_0 * 10 seconds
-    popout_stage_delta_vs = three_stage_calcs[stage_delta_vs];
+    let popout_delta_v, popout_stage_delta_vs, popout_stage_mass_fractions;
+    three_stage_data = calculate_three_stage(data);
+    ({popout_delta_v, popout_stage_delta_vs, popout_stage_mass_fractions} = three_stage_data);
+    popout_delta_v -= g*10; //difference here! - g_0 * 10 seconds
     popout_stage_delta_vs[0] -= g*10;
-    popout_stage_mass_fractions = three_stage_calcs[mass_fractions];
     return { delta_v:popout_delta_v, stage_delta_vs:popout_stage_delta_vs, mass_fractions:popout_stage_mass_fractions};
 }
 // Expose globally

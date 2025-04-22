@@ -19,28 +19,28 @@ function calculate_three_stage(data) {
         parseFloat(data.length3) || 0
     ];
 
-    // 2) pure propellant masses (no payload baked in)
-    const prop_weights = lengths.map(l =>
+    // 2) launch weights (no payload baked in)
+    const launch_weights = lengths.map(l =>
         0.04 * (l * meters_to_inches)
              * (diameter**2)
     );
 
     // 3) structure masses (22% of propellant)
-    const struct_masses = prop_weights.map(w => w * 0.22);
+    const struct_masses = launch_weights.map(w => w * 0.22);
 
     // 4) build mass‐fractions around the payload
     // Stage 1: all three tanks + payload
-    const m0_1 = prop_weights[0] + prop_weights[1] + prop_weights[2] + payload;
-    const mf_1 = prop_weights[1] + prop_weights[2] + struct_masses[0] + payload;
+    const m0_1 = launch_weights[0] + launch_weights[1] + launch_weights[2] + payload;
+    const mf_1 = launch_weights[1] + launch_weights[2] + struct_masses[0] + payload;
     const stage_1_mf = m0_1 / mf_1;
 
     // Stage 2: tanks 2&3 + payload
-    const m0_2 = prop_weights[1] + prop_weights[2] + payload;
-    const mf_2 = prop_weights[2] + struct_masses[1] + payload;
+    const m0_2 = launch_weights[1] + launch_weights[2] + payload;
+    const mf_2 = launch_weights[2] + struct_masses[1] + payload;
     const stage_2_mf = m0_2 / mf_2;
 
     // Stage 3: tank 3 + payload
-    const m0_3 = prop_weights[2] + payload;
+    const m0_3 = launch_weights[2] + payload;
     const mf_3 = struct_masses[2] + payload;
     const stage_3_mf = m0_3 / mf_3;
 

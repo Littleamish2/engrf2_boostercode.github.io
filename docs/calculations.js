@@ -29,17 +29,17 @@ function calculate_three_stage(data) {
     const struct_masses = prop_weights.map(w => w * 0.22);
 
     // 4) build mass‐fractions around the payload
-    // Stage 1: all three tanks + payload
+    // Stage 1: all three tanks + payload
     const m0_1 = prop_weights[0] + prop_weights[1] + prop_weights[2] + payload;
     const mf_1 = prop_weights[1] + prop_weights[2] + struct_masses[0] + payload;
     const stage_1_mf = m0_1 / mf_1;
 
-    // Stage 2: tanks 2&3 + payload
+    // Stage 2: tanks 2&3 + payload
     const m0_2 = prop_weights[1] + prop_weights[2] + payload;
     const mf_2 = prop_weights[2] + struct_masses[1] + payload;
     const stage_2_mf = m0_2 / mf_2;
 
-    // Stage 3: tank 3 + payload
+    // Stage 3: tank 3 + payload
     const m0_3 = prop_weights[2] + payload;
     const mf_3 = struct_masses[2] + payload;
     const stage_3_mf = m0_3 / mf_3;
@@ -66,6 +66,15 @@ function calculate_pop_out(data) {
     const booster1_length = parseFloat(data.length5) || 0;
     const booster2_length = parseFloat(data.length6) || 0;
 
+    // Skip calculations if any booster length is 0
+    if (booster1_length === 0 || booster2_length === 0) {
+        return { 
+            delta_v: 0, 
+            stage_delta_vs: [0, 0, 0], 
+            mass_fractions: [1, 1, 1] 
+        };
+    }
+
     // propellant masses
     const core_weight     = 0.04 * (core_length     * meters_to_inches) * meters_to_inches * meters_to_inches;
     const booster1_weight = 0.04 * (booster1_length * meters_to_inches) * meters_to_inches * meters_to_inches;
@@ -75,17 +84,17 @@ function calculate_pop_out(data) {
     const booster1_struct = booster1_weight * 0.22;
     const booster2_struct = booster2_weight * 0.22;
 
-    // Stage 1 (all three burn)
+    // Stage 1 (all three burn)
     const m0_1 = core_weight + booster1_weight + booster2_weight + payload;
     const mf_1 = core_struct + booster1_struct + booster2_struct + payload;
     const stage1_mf = m0_1 / mf_1;
 
-    // Stage 2 (core+booster1)
+    // Stage 2 (core+booster1)
     const m0_2 = core_weight + booster1_weight + payload;
     const mf_2 = core_struct + booster1_struct + payload;
     const stage2_mf = m0_2 / mf_2;
 
-    // Stage 3 (core only)
+    // Stage 3 (core only)
     const m0_3 = core_weight + payload;
     const mf_3 = core_struct + payload;
     const stage3_mf = m0_3 / mf_3;

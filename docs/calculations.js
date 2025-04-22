@@ -63,7 +63,11 @@ function calculate_three_stage(data) {
 function calculate_pop_out(data) {
     console.log('Calculating pop out with data:', data);
     let popout_delta_v, popout_stage_delta_vs, popout_stage_mass_fractions;
-    three_stage_data = calculate_three_stage(data);
+
+    const { length4, length5, length6 } = data;
+    const subset = { length4, length5, length6 }; //calculates with only popout lengths
+     
+    three_stage_data = calculate_three_stage(subset);
     ({popout_delta_v, popout_stage_delta_vs, popout_stage_mass_fractions} = three_stage_data);
     popout_delta_v -= g*10; //difference here! - g_0 * 10 seconds
     popout_stage_delta_vs[0] -= g*10;

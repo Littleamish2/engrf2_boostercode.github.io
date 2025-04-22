@@ -65,10 +65,17 @@ function calculate_pop_out(data) {
     let popout_delta_v, popout_stage_delta_vs, popout_stage_mass_fractions;
 
     const { length4, length5, length6 } = data;
-    const subset = { length4, length5, length6 }; //calculates with only popout lengths
+    length1 = length4;
+    length2 = length5; //switcheroo
+    length3 = length6;
+
+    const subset = { length1, length2, length3 }; //calculates with only popout lengths
      
     three_stage_data = calculate_three_stage(subset);
     ({popout_delta_v, popout_stage_delta_vs, popout_stage_mass_fractions} = three_stage_data);
+
+    console.log('Data: ' + popout_delta_v + ' ' + popout_stage_delta_vs + ' ' + popout_stage_mass_fractions)
+    
     popout_delta_v -= g*10; //difference here! - g_0 * 10 seconds
     popout_stage_delta_vs[0] -= g*10;
     return { delta_v:popout_delta_v, stage_delta_vs:popout_stage_delta_vs, mass_fractions:popout_stage_mass_fractions};

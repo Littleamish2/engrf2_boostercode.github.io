@@ -5,6 +5,7 @@ const v_eq = g * specific_impulse;
 const meters_to_inches = 39.3700787402;
 const kg_to_lbs = 2.20462;
 const payload = 250 * kg_to_lbs;  // in lbs
+const diameter = 1 * meters_to_inches;
 
 /**
  * calculate_three_stage(data): computes ΔV for a three-stage booster
@@ -21,8 +22,7 @@ function calculate_three_stage(data) {
     // 2) pure propellant masses (no payload baked in)
     const prop_weights = lengths.map(l =>
         0.04 * (l * meters_to_inches)
-             * (1     * meters_to_inches)
-             * (1     * meters_to_inches)
+             * (diameter**2)
     );
 
     // 3) structure masses (22% of propellant)
